@@ -55,9 +55,7 @@ class GridStrategy(metaclass=ABCMeta):
         num_small_cols = np.lcm.reduce(grid_arrangement)
         if figure is None:
             figure = plt.figure(constrained_layout=True)
-        gs = gridspec.GridSpec(
-            nrows, num_small_cols, figure=figure
-        )
+        gs = gridspec.GridSpec(nrows, num_small_cols, figure=figure)
         for r, row_cols in enumerate(grid_arrangement):
             skip = num_small_cols // row_cols
             for col in range(row_cols):
@@ -75,9 +73,7 @@ class GridStrategy(metaclass=ABCMeta):
 
         if figure is None:
             figure = plt.figure(constrained_layout=True)
-        gs = gridspec.GridSpec(
-            nrows, ncols * col_width, figure=figure
-        )
+        gs = gridspec.GridSpec(nrows, ncols * col_width, figure=figure)
 
         ax_specs = []
         for r, row_cols in enumerate(grid_arrangement):
