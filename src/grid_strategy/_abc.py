@@ -41,6 +41,9 @@ class GridStrategy(metaclass=ABCMeta):
         pass
 
     def get_gridspec(self, grid_arrangement, figure=None):
+        if figure is None:
+            figure = plt.figure(constrained_layout=True)
+
         nrows = len(grid_arrangement)
         ncols = max(grid_arrangement)
 
@@ -50,11 +53,9 @@ class GridStrategy(metaclass=ABCMeta):
         else:
             return self._ragged(nrows, ncols, grid_arrangement, figure)
 
-    def _justified(self, nrows, grid_arrangement, figure=None):
+    def _justified(self, nrows, grid_arrangement, figure):
         ax_specs = []
         num_small_cols = np.lcm.reduce(grid_arrangement)
-        if figure is None:
-            figure = plt.figure(constrained_layout=True)
         gs = gridspec.GridSpec(nrows, num_small_cols, figure=figure)
         for r, row_cols in enumerate(grid_arrangement):
             skip = num_small_cols // row_cols
@@ -65,14 +66,12 @@ class GridStrategy(metaclass=ABCMeta):
                 ax_specs.append(gs[r, s:e])
         return ax_specs
 
-    def _ragged(self, nrows, ncols, grid_arrangement, figure=None):
+    def _ragged(self, nrows, ncols, grid_arrangement, figure):
         if len(set(grid_arrangement)) > 1:
             col_width = 2
         else:
             col_width = 1
 
-        if figure is None:
-            figure = plt.figure(constrained_layout=True)
         gs = gridspec.GridSpec(nrows, ncols * col_width, figure=figure)
 
         ax_specs = []
