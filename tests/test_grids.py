@@ -58,7 +58,9 @@ def plt_figure_mock():
     ],
 )
 @pytest.mark.parametrize("figure_passed", [True, False])
-def test_square_spec(gridspec_mock, plt_figure_mock, align, n, exp_specs, figure_passed):
+def test_square_spec(
+    gridspec_mock, plt_figure_mock, align, n, exp_specs, figure_passed
+):
     if figure_passed:
         user_figure = sentinel.user_figure
     else:
@@ -73,7 +75,7 @@ def test_square_spec(gridspec_mock, plt_figure_mock, align, n, exp_specs, figure
     args, kwargs = gridspec_mock.call_args
     if figure_passed:
         plt_figure_mock.assert_not_called()
-        assert kwargs['figure'] is sentinel.user_figure
+        assert kwargs["figure"] is sentinel.user_figure
     else:
         plt_figure_mock.assert_called_once_with(constrained_layout=True)
-        assert kwargs['figure'] is sentinel.new_figure
+        assert kwargs["figure"] is sentinel.new_figure
