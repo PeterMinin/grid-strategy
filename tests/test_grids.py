@@ -1,5 +1,5 @@
 import pytest
-from unittest import mock
+from unittest.mock import Mock, patch, sentinel
 
 from grid_strategy.strategies import SquareStrategy
 
@@ -17,29 +17,18 @@ class SpecValue:
         return self.rows == other.rows and self.cols == other.cols
 
 
-class GridSpecMock:
-    def __init__(self, nrows, ncols, *args, **kwargs):
-        self._nrows_ = nrows
-        self._ncols_ = ncols
-
-        self._args_ = args
-        self._kwargs_ = kwargs
-
-    def __getitem__(self, key_tup):
-        return SpecValue(*key_tup, self)
+@pytest.fixture
+def gridspec_mock():
+    with patch("grid_strategy._abc.gridspec.GridSpec", new_callable=Mock) as g:
+        g.return_value.__getitem__ = lambda self, key_tup: SpecValue(*key_tup, self)
+        yield g
 
 
 @pytest.fixture
-def gridspec_mock():
-    class Figure:
-        pass
-
-    def figure(*args, **kwargs):
-        return Figure()
-
-    with mock.patch(f"grid_strategy._abc.gridspec.GridSpec", new=GridSpecMock) as g:
-        with mock.patch(f"grid_strategy._abc.plt.figure", new=figure):
-            yield g
+def plt_figure_mock():
+    with patch("grid_strategy._abc.plt.figure", new_callable=Mock) as f:
+        f.return_value = sentinel.new_figure
+        yield f
 
 
 @pytest.mark.parametrize(
@@ -68,10 +57,23 @@ def gridspec_mock():
         ("left", 2, [(0, slice(0, 1)), (0, slice(1, 2))]),
     ],
 )
-def test_square_spec(gridspec_mock, align, n, exp_specs):
+@pytest.mark.parametrize("figure_passed", [True, False])
+def test_square_spec(gridspec_mock, plt_figure_mock, align, n, exp_specs, figure_passed):
+    if figure_passed:
+        user_figure = sentinel.user_figure
+    else:
+        user_figure = None
+
     ss = SquareStrategy(align)
+    act = ss.get_grid(n, figure=user_figure)
 
-    act = ss.get_grid(n)
     exp = [SpecValue(*spec) for spec in exp_specs]
-
     assert act == exp
+
+    args, kwargs = gridspec_mock.call_args
+    if figure_passed:
+        plt_figure_mock.assert_not_called()
+        assert kwargs['figure'] is sentinel.user_figure
+    else:
+        plt_figure_mock.assert_called_once_with(constrained_layout=True)
+        assert kwargs['figure'] is sentinel.new_figure
